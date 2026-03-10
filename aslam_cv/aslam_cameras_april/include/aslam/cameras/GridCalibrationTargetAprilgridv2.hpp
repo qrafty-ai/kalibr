@@ -2,13 +2,12 @@
 
 #include <vector>
 
+#include <Eigen/Core>
 #include <aslam/cameras/GridCalibrationTargetBase.hpp>
 #include <boost/shared_ptr.hpp>
-#include <Eigen/Core>
-#include <sm/assert_macros.hpp>
-#include <opencv2/core/core.hpp>
 #include <opencv2/aruco.hpp>
-
+#include <opencv2/core/core.hpp>
+#include <sm/assert_macros.hpp>
 
 namespace aslam {
 namespace cameras {
@@ -31,15 +30,16 @@ class GridCalibrationTargetAprilgridv2 : public GridCalibrationTargetBase {
   // Relies on OpenCV's ArUco DetectorParameters
   struct AprilgridOptionsv2 {
     // Default constructor with default options
-    AprilgridOptionsv2() :
-      detectorParameters(cv::aruco::DetectorParameters::create()),
-      dictionary(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_APRILTAG_36h11)),
-      minTagsForValidObs(4) {
-        detectorParameters->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
-        detectorParameters->markerBorderBits = 2;
-      }
+    AprilgridOptionsv2()
+        : detectorParameters(cv::makePtr<cv::aruco::DetectorParameters>()),
+          dictionary(
+              cv::makePtr<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_APRILTAG_36h11))),
+          minTagsForValidObs(4) {
+      detectorParameters->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
+      detectorParameters->markerBorderBits = 2;
+    }
 
-    //options
+    // options
     cv::Ptr<cv::aruco::DetectorParameters> detectorParameters;
     cv::Ptr<cv::aruco::Dictionary> dictionary;
 
@@ -48,8 +48,8 @@ class GridCalibrationTargetAprilgridv2 : public GridCalibrationTargetBase {
   };
 
   /// \brief initialize based on checkerboard geometry
-  GridCalibrationTargetAprilgridv2(size_t tagRows, size_t tagCols, double tagSize,
-                                 double tagSpacing, const AprilgridOptionsv2 &options = AprilgridOptionsv2());
+  GridCalibrationTargetAprilgridv2(size_t tagRows, size_t tagCols, double tagSize, double tagSpacing,
+                                   const AprilgridOptionsv2& options = AprilgridOptionsv2());
 
   virtual ~GridCalibrationTargetAprilgridv2() {};
 
@@ -57,12 +57,10 @@ class GridCalibrationTargetAprilgridv2 : public GridCalibrationTargetBase {
   void createGridPoints();
 
   /// \brief extract the calibration target points from an image and write to an observation
-  bool computeObservation(const cv::Mat & image,
-                          Eigen::MatrixXd & outImagePoints,
-                          std::vector<bool> &outCornerObserved) const;
+  bool computeObservation(const cv::Mat& image, Eigen::MatrixXd& outImagePoints,
+                          std::vector<bool>& outCornerObserved) const;
 
  private:
-
   /// \brief size of a tag [m]
   double _tagSize;
 
@@ -72,7 +70,6 @@ class GridCalibrationTargetAprilgridv2 : public GridCalibrationTargetBase {
   /// \brief target extraction options
   AprilgridOptionsv2 _options;
 };
-
 
 }  // namespace cameras
 }  // namespace aslam

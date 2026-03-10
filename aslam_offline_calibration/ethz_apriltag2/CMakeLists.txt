@@ -7,6 +7,14 @@ project(ethz_apriltag2
 
 find_package(Eigen3 REQUIRED)
 find_package(OpenCV REQUIRED)
+find_path(V4L2_INCLUDE_DIR
+  NAMES libv4l2.h
+  PATHS /usr/include /usr/local/include
+)
+find_library(V4L2_LIBRARY
+  NAMES v4l2
+  PATHS /usr/lib64 /usr/lib /lib64 /lib
+)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
@@ -47,8 +55,17 @@ target_link_libraries(
 
 #demo
 if(NOT APPLE)
+  if(NOT V4L2_INCLUDE_DIR)
+    message(FATAL_ERROR "Could not find libv4l2.h. Set V4L2_INCLUDE_DIR or install the v4l2 development headers.")
+  endif()
+  if(NOT V4L2_LIBRARY)
+    message(FATAL_ERROR "Could not find libv4l2. Set V4L2_LIBRARY or install the v4l2 runtime library.")
+  endif()
+
   add_executable(apriltags_demo src/example/apriltags_demo.cpp src/example/Serial.cpp)
-  target_link_libraries(apriltags_demo ${PROJECT_NAME} v4l2)
+  target_include_directories(apriltags_demo PRIVATE ${V4L2_INCLUDE_DIR})
+  target_compile_options(apriltags_demo PRIVATE "SHELL:-isystem ${V4L2_INCLUDE_DIR}")
+  target_link_libraries(apriltags_demo ${PROJECT_NAME} ${V4L2_LIBRARY})
 endif()
 
 target_compile_options(
